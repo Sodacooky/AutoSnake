@@ -13,13 +13,15 @@ class Game {
  public:
   Game(size_t width, size_t height, bool manual_mode);
 
-  //将蛇填充进地图
-  void FillSnake();
+  //根据键盘改变蛇行进方向
+  //或根据地图计算路径
+  void ControllReact();
 
-  //生成食物，返回生成的食物位置
+  //蛇按方向前进
+  void SnakeMove();
 
-  //是否吃到食物
-  bool IsAteFood();
+  //游戏是否失败
+  bool IsGameOver();
 
  private:
   // where is the food
