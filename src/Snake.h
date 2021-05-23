@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include "Controller.h"
+#include "MyStruct/MyLink.h"
 #include "MyStruct/MyStack.h"
 #include "Pixel.h"
 
@@ -42,23 +43,8 @@ class Snake {
   void __HeadMoveForward();
 
  private:
-  /*
-    阉割版链表
-    不能插入节点，因为用不到
-    不能删除节点，因为用不到
-  */
-  class _BodyNode_ {
-   public:
-    _BodyNode_() : pt({-1, -1}), pNext(nullptr) {}
-    SDL_Point pt;
-    _BodyNode_* pNext;
-  };
-  //蛇身（头
-  //含头节点的单向链表
-  _BodyNode_* m_pBodyHead;
-
-  //蛇长度
-  int m_nBodyLength;
+  //蛇身
+  MyLink<SDL_Point> m_link_ptBody;
 
   //下一步的方向
   // 0 up, 1 right, ...

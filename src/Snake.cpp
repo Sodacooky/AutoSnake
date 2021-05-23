@@ -1,28 +1,18 @@
 ﻿#include "Snake.h"
 
 void Snake::Lengthen() {
-  //从尾部伸长，效率很低但能用就行
-  auto nowPtr = m_pBodyHead;
-  // move to tail
-  while (nowPtr->pNext != nullptr) {
-    nowPtr = nowPtr->pNext;
-  }
-  // create new
-  auto to_add = new _BodyNode_;
-  to_add->pNext = nullptr;
-  to_add->pt = nowPtr->pt;
-  // append
-  nowPtr->pNext = to_add;
-  m_nBodyLength++;
+  auto the_old_last = m_link_ptBody.GetWhere(m_link_ptBody.Size() - 1);
+  m_link_ptBody.InsertWhere(the_old_last, m_link_ptBody.Size());
 }
 
-int Snake::Length() { return m_nBodyLength; }
+int Snake::Length() { return m_link_ptBody.Size(); }
 
 bool Snake::IsOnBody(const SDL_Point& pt) {
-  auto nowPtr = m_pBodyHead;
-  while (nowPtr->pNext != nullptr) {
-    nowPtr = nowPtr->pNext;
-    if (nowPtr->pt.x == pt.x && nowPtr->pt.y == pt.y) {
+  //自己做的链表可没有迭代器可用，那么只能把复杂度上升到n^2了
+  //自己做个迭代器那就太“多此一举”了
+  for (size_t index = 0; index != m_link_ptBody.Size(); index++) {
+    auto tmp_pt = m_link_ptBody.GetWhere(index);
+    if (tmp_pt.x == pt.x && tmp_pt.y == pt.y) {
       return true;
     }
   }
@@ -30,67 +20,43 @@ bool Snake::IsOnBody(const SDL_Point& pt) {
 }
 
 void Snake::Draw() {
-  // draw special head
-  auto nowPtr = m_pBodyHead->pNext;
-  Pixel::SetColor(0, 0, 255);
-  Pixel::Draw(nowPtr->pt.x, nowPtr->pt.y);
-
-  // draw normal body
+  auto to_draw_pt = m_link_ptBody.GetWhere(0);
+  // head
+  Pixel::SetColor(128, 128, 255);
+  Pixel::Draw(to_draw_pt.x, to_draw_pt.y);
+  // body
   Pixel::SetColor(255, 255, 255);
-  while (nowPtr->pNext != nullptr) {
-    nowPtr = nowPtr->pNext;
-    Pixel::Draw(nowPtr->pt.x, nowPtr->pt.y);
+  for (size_t index = 1; index != m_link_ptBody.Size(); index++) {
+    to_draw_pt = m_link_ptBody.GetWhere(index);
+    Pixel::Draw(to_draw_pt.x, to_draw_pt.y);
   }
 }
 
 void Snake::__CreateDefaultBody() {
-  // 蛇链表此时保证为空
-  // init & create link head
-  m_nBodyLength = 0;
-  m_pBodyHead = new _BodyNode_;
-  m_pBodyHead->pt = {-1, -1};
-  m_pBodyHead->pNext = nullptr;
-
-  SDL_Point to_add_pt = {5, 5};
-  // create snake head
-  m_pBodyHead->pNext = new _BodyNode_;
-  auto nowPtr = m_pBodyHead->pNext;
-  nowPtr->pt = to_add_pt;
-  nowPtr->pNext = nullptr;
-  // create 2 body blocks
-  nowPtr->pNext = new _BodyNode_;
-  nowPtr = nowPtr->pNext;
-  to_add_pt = {6, 5};
-  nowPtr->pt = to_add_pt;
-  nowPtr->pNext = nullptr;
-  //
-  nowPtr->pNext = new _BodyNode_;
-  nowPtr = nowPtr->pNext;
-  to_add_pt = {7, 5};
-  nowPtr->pt = to_add_pt;
-  nowPtr->pNext = nullptr;
+  // add default point
+  m_link_ptBody.InsertWhere({7, 5}, 0);
+  m_link_ptBody.InsertWhere({6, 5}, 0);
+  m_link_ptBody.InsertWhere({5, 5}, 0);
   // set move direction
   m_nDirection = 3;
 }
 
 void Snake::__BodyMoveForward() {
   //身体压入栈
-  MyStack<_BodyNode_*> stack;
-  auto nowPtr = m_pBodyHead->pNext;
-  while (nowPtr != nullptr) {
-    stack.Push(nowPtr);
-    nowPtr = nowPtr->pNext;
+  MyStack<SDL_Point&> stack;
+  for (size_t index = 0; index != m_link_ptBody.Size(); index++) {
+    stack.Push(m_link_ptBody.GetWhere(index));
   }
   //从尾部开始前移
   while (stack.Size() > 1) {
-    auto to_move = stack.Top();
+    auto& to_move = stack.Top();
     stack.Pop();
-    to_move->pt = stack.Top()->pt;
+    to_move = stack.Top();
   }
 }
 
 void Snake::__HeadMoveForward() {
-  auto& head = m_pBodyHead->pNext->pt;
+  auto& head = m_link_ptBody.GetWhere(0);
   switch (m_nDirection) {
     case 0:  // up
       head.y -= 1;
@@ -110,7 +76,7 @@ void Snake::__HeadMoveForward() {
   }
 }
 
-const SDL_Point& Snake::HeadPosition() { return m_pBodyHead->pNext->pt; }
+const SDL_Point& Snake::HeadPosition() { return m_link_ptBody.GetWhere(0); }
 
 void Snake::MoveForward() {
   //响应控制器
@@ -122,15 +88,8 @@ void Snake::MoveForward() {
 }
 
 Snake::Snake(ControllerInterface* controller) {
-  m_Controller = controller;
   __CreateDefaultBody();
+  m_Controller = controller;
 }
 
-Snake::~Snake() {
-  auto now = m_pBodyHead;
-  while (now != nullptr) {
-    auto next = now->pNext;
-    delete now;
-    now = next;
-  }
-}
+Snake::~Snake() {}

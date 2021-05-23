@@ -5,7 +5,7 @@
 template <typename T>
 class MyVec2d {
  public:
-  MyVec2d() : MyVec2d(30, 20);
+  MyVec2d() : MyVec2d(30, 20){};
   MyVec2d(size_t width, size_t height)
       : m_nWidth(width), m_nHeight(height), m_nSize(width * height) {
     m_pMem = new T[m_nWidth * m_nHeight];
