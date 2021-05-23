@@ -16,19 +16,21 @@ class Snake {
   Snake(ControllerInterface* controller);
   ~Snake();
 
+ public:
   //蛇头位置
   const SDL_Point& HeadPosition();
   //长度
-  int Length();
+  size_t Length();
+  //给定点是否在蛇身上
+  bool IsOnBody(const SDL_Point& pt);
 
+ public:
+  //根据控制器做出调整
+  void ControllerReact();
   //向前移动
   void MoveForward();
   //变长
   void Lengthen();
-
-  //给定点是否在蛇身上
-  bool IsOnBody(const SDL_Point& pt);
-
   //绘制蛇
   //自动设置绘制的颜色
   void Draw();

@@ -3,8 +3,7 @@
 
 //单链表节点
 template <typename T>
-class _MyLink_Node_ {
- public:
+struct _MyLink_Node_ {
   _MyLink_Node_* pNextNode = nullptr;
   T content;
 };
@@ -35,17 +34,19 @@ class MyLink {
 
 template <typename T>
 MyLink<T>::MyLink() {
+  m_Size = 0;
+  m_pHead = new _MyLink_Node_<T>;
   m_pHead->pNextNode = nullptr;
 }
 
 template <typename T>
 MyLink<T>::~MyLink() {
   _MyLink_Node_<T>* now = m_pHead;
-  _MyLink_Node_<T>* next = now->pNext;
+  _MyLink_Node_<T>* next = now->pNextNode;
   while (next != nullptr) {
     delete now;
     now = next;
-    next = now->pNext;
+    next = now->pNextNode;
   }
 }
 
@@ -71,7 +72,7 @@ void MyLink<T>::InsertWhere(const T& to_insert, size_t index) {
 template <typename T>
 T& MyLink<T>::GetWhere(size_t index) {
   _MyLink_Node_<T>* now_ptr = m_pHead->pNextNode;
-  size_t now_index;
+  size_t now_index = 0;
   while (now_ptr != nullptr && now_index < index) {
     now_ptr = now_ptr->pNextNode;
     now_index++;
@@ -85,7 +86,7 @@ T& MyLink<T>::GetWhere(size_t index) {
 template <typename T>
 void MyLink<T>::DeleteWhere(size_t index) {
   _MyLink_Node_<T>* now_ptr = m_pHead;
-  size_t now_index;
+  size_t now_index = 0;
   while (now_ptr != nullptr && now_index < index) {
     now_ptr = now_ptr->pNextNode;
   }

@@ -1,16 +1,20 @@
 #include <iostream>
 #include <random>
 
-#include "Game.h"
-#include "MyStruct/MyVec2d.h"
+#include "Controller.h"
 #include "Pixel.h"
+#include "Snake.h"
 
 int main(int, char**) {
   const int mapWidth = 32;
   const int mapHeight = 16;
   Pixel::Init(mapWidth, mapHeight, 32);
 
-  Snake snake;
+  SDL_Event msg;
+
+  ControllerInterface* controller = new ManualController(msg);
+  Snake snake(controller);
+
   auto last_move_time = SDL_GetTicks();
 
   SDL_Point food_position;
@@ -19,28 +23,10 @@ int main(int, char**) {
   std::uniform_int_distribution<int> dis_y(0, mapHeight - 1);
   food_position = {10, 10};
 
-  SDL_Event msg;
-  while (snake.Length() <= 6) {
+  while (true) {
     SDL_PollEvent(&msg);
-
-    if (msg.type == SDL_KEYUP) {
-      switch (msg.key.keysym.sym) {
-        case SDLK_UP:
-          snake.NextDirection(0);
-          break;
-        case SDLK_RIGHT:
-          snake.NextDirection(1);
-          break;
-        case SDLK_DOWN:
-          snake.NextDirection(2);
-          break;
-        case SDLK_LEFT:
-          snake.NextDirection(3);
-          break;
-        default:
-          break;
-      }
-    }
+    if (msg.type == SDL_QUIT) break;
+    snake.ControllerReact();
 
     auto now_time = SDL_GetTicks();
     if (now_time - last_move_time > 250) {

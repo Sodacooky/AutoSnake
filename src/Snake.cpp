@@ -5,7 +5,7 @@ void Snake::Lengthen() {
   m_link_ptBody.InsertWhere(the_old_last, m_link_ptBody.Size());
 }
 
-int Snake::Length() { return m_link_ptBody.Size(); }
+size_t Snake::Length() { return m_link_ptBody.Size(); }
 
 bool Snake::IsOnBody(const SDL_Point& pt) {
   //自己做的链表可没有迭代器可用，那么只能把复杂度上升到n^2了
@@ -17,6 +17,16 @@ bool Snake::IsOnBody(const SDL_Point& pt) {
     }
   }
   return false;
+}
+
+void Snake::ControllerReact() {
+  auto tmp = m_Controller->React();
+  if (tmp == -1) return;
+  if (tmp == 0 && m_nDirection == 2) return;
+  if (tmp == 1 && m_nDirection == 3) return;
+  if (tmp == 2 && m_nDirection == 0) return;
+  if (tmp == 3 && m_nDirection == 1) return;
+  m_nDirection = tmp;
 }
 
 void Snake::Draw() {
@@ -43,15 +53,14 @@ void Snake::__CreateDefaultBody() {
 
 void Snake::__BodyMoveForward() {
   //身体压入栈
-  MyStack<SDL_Point&> stack;
+  MyStack<SDL_Point*> stack;
   for (size_t index = 0; index != m_link_ptBody.Size(); index++) {
-    stack.Push(m_link_ptBody.GetWhere(index));
+    stack.Push(&(m_link_ptBody.GetWhere(index)));
   }
   //从尾部开始前移
   while (stack.Size() > 1) {
-    auto& to_move = stack.Top();
-    stack.Pop();
-    to_move = stack.Top();
+    auto pToMove = stack.Pop();
+    *pToMove = *(stack.Top());
   }
 }
 
@@ -79,8 +88,6 @@ void Snake::__HeadMoveForward() {
 const SDL_Point& Snake::HeadPosition() { return m_link_ptBody.GetWhere(0); }
 
 void Snake::MoveForward() {
-  //响应控制器
-  m_nDirection = m_Controller->React();
   //头后跟随前一格
   __BodyMoveForward();
   //头移动
