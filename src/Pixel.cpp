@@ -43,3 +43,17 @@ void Pixel::Draw(int mapX, int mapY) {
                       sg_nPixelSize};
   SDL_RenderFillRect(sg_pRenderer, &tmpRect);
 }
+
+void Pixel::Draw(const MyPoint& pt) { Draw(pt.x, pt.y); }
+
+void Pixel::DrawLine(int x1, int y1, int x2, int y2) {
+  SDL_Point from = {x1 * sg_nPixelSize + sg_nPixelSize / 2,
+                    y1 * sg_nPixelSize + sg_nPixelSize / 2};
+  SDL_Point to = {x2 * sg_nPixelSize + sg_nPixelSize / 2,
+                  y2 * sg_nPixelSize + sg_nPixelSize / 2};
+  SDL_RenderDrawLine(sg_pRenderer, from.x, from.y, to.x, to.y);
+}
+
+void Pixel::DrawLine(const MyPoint& from, const MyPoint& to) {
+  DrawLine(from.x, from.y, to.x, to.y);
+}

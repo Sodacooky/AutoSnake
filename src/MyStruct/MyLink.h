@@ -13,6 +13,8 @@ template <typename T>
 class MyLink {
  public:
   MyLink();
+  //深拷贝
+  MyLink(const MyLink& right);
   ~MyLink();
 
  public:
@@ -22,6 +24,9 @@ class MyLink {
   T& GetWhere(size_t index);
   //删除index位置元素，原index后元素前移
   void DeleteWhere(size_t index);
+  //查找是否有此元素，返回index
+  //-1 on not found
+  int Find(const T& to_find);
 
  public:
   //元素数量
@@ -37,6 +42,19 @@ MyLink<T>::MyLink() {
   m_Size = 0;
   m_pHead = new _MyLink_Node_<T>;
   m_pHead->pNextNode = nullptr;
+}
+
+template <typename T>
+MyLink<T>::MyLink(const MyLink& right) : MyLink() {
+  _MyLink_Node_<T>* r_now = right.m_pHead;
+  _MyLink_Node_<T>* now = m_pHead;
+  while (r_now->pNextNode != nullptr) {
+    now->pNextNode = new _MyLink_Node_<T>;
+    now->pNextNode->content = r_now->pNextNode->content;
+    now->pNextNode->pNextNode = nullptr;
+    now = now->pNextNode;
+    r_now = r_now->pNextNode;
+  }
 }
 
 template <typename T>
@@ -89,6 +107,7 @@ void MyLink<T>::DeleteWhere(size_t index) {
   size_t now_index = 0;
   while (now_ptr != nullptr && now_index < index) {
     now_ptr = now_ptr->pNextNode;
+    now_index++;
   }
   if (now_ptr == nullptr) {
     throw "index out of range";
@@ -98,6 +117,22 @@ void MyLink<T>::DeleteWhere(size_t index) {
   delete now_ptr->pNextNode;
   now_ptr->pNextNode = tmp;
   m_Size--;
+}
+
+template <typename T>
+int MyLink<T>::Find(const T& to_find) {
+  int now_index = 0;
+  int result_index = -1;
+  _MyLink_Node_<T>* now_ptr = m_pHead->pNextNode;
+  while (now_ptr != nullptr) {
+    if (now_ptr->content == to_find) {
+      result_index = now_index;
+      break;
+    }
+    now_ptr = now_ptr->pNextNode;
+    now_index++;
+  }
+  return result_index;
 }
 
 template <typename T>

@@ -1,6 +1,8 @@
 ﻿#ifndef __MYVEC2D_H__
 #define __MYVEC2D_H__
 
+#include "MyPoint.h"
+
 // 2d向量，大小不可变
 template <typename T>
 class MyVec2d {
@@ -12,22 +14,36 @@ class MyVec2d {
   }
   ~MyVec2d() { delete[] m_pMem; }
 
-  T& GetByPos(int x, int y) { return GetByIndex(y * m_nWidth + m_nHeight); }
-  T& GetByIndex(int index) {
-    if (index < 0 || index >= m_nSize) {
-      throw "out of range";
-    }
+ public:
+  T& GetByPos(const MyPoint& pt) { return GetByPos(pt.x, pt.y); }
+  T& GetByPos(int x, int y) {
+    if (!IsInRange(x, y)) throw "out of range";
+    return GetByIndex(y * m_nWidth + x);
+  }
+  T& GetByIndex(size_t index) {
+    if (index >= m_nSize) throw "out of range";
     return m_pMem[index];
   }
 
-  bool IsInRange(int x, int y) { return IsInRange(y * m_nWidth + m_nHeight); }
-  bool IsInRange(int index) {
-    if (index < 0 || index >= m_nSize) {
-      return false;
-    } else {
-      return true;
-    }
+ public:
+  bool IsInRange(const MyPoint& pt) { return IsInRange(pt.x, pt.y); }
+  bool IsInRange(int x, int y) {
+    if (x < 0 || y < 0 || x >= m_nWidth || y >= m_nHeight) return false;
+    return IsInRange(y * m_nWidth + x);
   }
+  bool IsInRange(size_t index) {
+    if (index >= m_nSize)
+      return false;
+    else
+      return true;
+  }
+
+ public:
+  void GetSize(size_t& width, size_t& height) {
+    width = m_nWidth;
+    height = m_nHeight;
+  }
+  void GetSize(size_t& length) { length = m_nSize; }
 
  private:
   size_t m_nWidth, m_nHeight, m_nSize;
