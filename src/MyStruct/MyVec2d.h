@@ -45,6 +45,13 @@ class MyVec2d {
   }
   void GetSize(size_t& length) { length = m_nSize; }
 
+ public:
+  void SetAll(const T& to_set) {
+    for (int i = 0; i != m_nSize; i++) {
+      m_pMem[i] = to_set;
+    }
+  }
+
  private:
   size_t m_nWidth, m_nHeight, m_nSize;
   T* m_pMem;

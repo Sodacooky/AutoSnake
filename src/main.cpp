@@ -41,7 +41,57 @@ bool IsGameOver(Snake& snake, int w, int h) {
   return false;
 }
 
-int main(int, char**) {
+void ManualGame() {
+  const int mapWidth = 32;
+  const int mapHeight = 24;
+  Pixel::Init(mapWidth, mapHeight, 24);
+
+  SDL_Event msg;
+
+  // snake component
+  auto mc = new ManualController(msg);
+  ControllerInterface* controller = mc;
+  Snake snake;
+
+  MyPoint food_position;
+  food_position = {7, 7};
+
+  auto last_move = SDL_GetTicks();
+
+  while (true) {
+    Pixel::Clear();
+
+    SDL_PollEvent(&msg);
+    if (msg.type == SDL_QUIT) break;
+
+    if (SDL_GetTicks() - last_move > 125) {
+      snake.MoveForward();
+      if (AteFood(snake, food_position)) {
+        snake.Lengthen();
+        FoodGenerate(food_position, snake, mapWidth, mapHeight);
+      }
+      last_move = SDL_GetTicks();
+    }
+
+    snake.SetDirection(controller->React());
+
+    if (IsGameOver(snake, mapWidth, mapHeight)) {
+      break;
+    }
+
+    Pixel::SetColor(0, 255, 0);
+    Pixel::Draw(food_position.x, food_position.y);
+
+    snake.Draw();
+
+    Pixel::SetColor(255, 0, 0);
+
+    Pixel::SetColor();
+    Pixel::Present();
+  }
+}
+
+void AutoGame() {
   const int mapWidth = 32;
   const int mapHeight = 24;
   Pixel::Init(mapWidth, mapHeight, 24);
@@ -62,16 +112,17 @@ int main(int, char**) {
     SDL_PollEvent(&msg);
     if (msg.type == SDL_QUIT) break;
 
+    ac->ResetMap();
+    ac->MapFillSnake(snake.link_ptBody);
+    ac->MapFillFood(food_position);
+
+    snake.SetDirection(controller->React());
+
     snake.MoveForward();
     if (AteFood(snake, food_position)) {
       snake.Lengthen();
       FoodGenerate(food_position, snake, mapWidth, mapHeight);
     }
-
-    ac->ResetMap();
-    ac->MapFillSnake(snake.link_ptBody);
-    ac->MapFillFood(food_position);
-    snake.SetDirection(controller->React());
 
     if (IsGameOver(snake, mapWidth, mapHeight)) {
       break;
@@ -87,8 +138,17 @@ int main(int, char**) {
 
     Pixel::SetColor();
     Pixel::Present();
-
-    SDL_Delay(32);
   }
+}
+
+int main(int, char**) {
+  // test my link
+  MyLink<int> link;
+  link.InsertWhere(114514, 0);
+  link.InsertWhere(1919, 0);
+  link.InsertWhere(666, 0);
+
+  std::cout << link.Find(1919) << std::endl;
+  std::cout << link.Find(999) << std::endl;
   return 0;
 }
