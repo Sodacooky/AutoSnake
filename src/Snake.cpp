@@ -5,12 +5,6 @@ void Snake::Lengthen() {
   link_ptBody.InsertWhere(the_old_last, link_ptBody.Size());
 }
 
-bool Snake::IsOnBody(const MyPoint& pt) {
-  auto find_result = link_ptBody.Find(pt);
-  if (find_result > 0) return true;
-  return false;
-}
-
 void Snake::SetDirection(int direction) {
   if (direction == -1) return;
   if (direction == 0 && m_nLastMoveDirection == 2) return;
@@ -18,19 +12,6 @@ void Snake::SetDirection(int direction) {
   if (direction == 2 && m_nLastMoveDirection == 0) return;
   if (direction == 3 && m_nLastMoveDirection == 1) return;
   m_nDirection = direction;
-}
-
-void Snake::Draw() {
-  auto to_draw_pt = link_ptBody.GetWhere(0);
-  // head
-  Pixel::SetColor(128, 128, 255);
-  Pixel::Draw(to_draw_pt.x, to_draw_pt.y);
-  // body
-  Pixel::SetColor(255, 255, 255);
-  for (size_t index = 1; index != link_ptBody.Size(); index++) {
-    to_draw_pt = link_ptBody.GetWhere(index);
-    Pixel::Draw(to_draw_pt.x, to_draw_pt.y);
-  }
 }
 
 void Snake::__CreateDefaultBody() {

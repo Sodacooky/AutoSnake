@@ -17,17 +17,12 @@ class Snake {
  public:
   //蛇头位置
   const MyPoint& HeadPosition();
-  //给定点是否在蛇身上
-  bool IsOnBody(const MyPoint& pt);
   //设置方向
   void SetDirection(int direction);
   //向前移动
   void MoveForward();
   //变长
   void Lengthen();
-  //绘制蛇
-  //自动设置绘制的颜色
-  void Draw();
 
  private:
   //创建一条初始向左长度为3的蛇

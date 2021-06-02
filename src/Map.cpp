@@ -10,6 +10,8 @@ Map::Map(size_t width, size_t height) : m_MapBlocks(width, height) {
       b.bIsVisited = false;
     }
   }
+  ptHead = {-1, -1};
+  ptTail = {-1, -1};
 }
 
 void Map::Clear() {
@@ -23,9 +25,13 @@ void Map::Clear() {
       b.ptFrom = {-1, -1};
     }
   }
+  ptHead = {-1, -1};
+  ptTail = {-1, -1};
 }
 
 void Map::FillSnake(MyLink<MyPoint>& pts) {
+  ptHead = pts.GetWhere(0);
+  if (m_MapBlocks.IsInRange(ptHead) == false) return;
   m_MapBlocks.GetByPos(pts.GetWhere(0)).blockState = _MapBlock_::State::HEAD;
   for (int i = 1; i != pts.Size(); i++) {
     m_MapBlocks.GetByPos(pts.GetWhere(i)).blockState = _MapBlock_::State::BODY;
@@ -34,6 +40,7 @@ void Map::FillSnake(MyLink<MyPoint>& pts) {
 
 void Map::FillFood(const MyPoint& pt) {
   m_MapBlocks.GetByPos(pt).blockState = _MapBlock_::State::FOOD;
+  ptFood = pt;
 }
 
 void Map::FillFood() {
@@ -51,11 +58,25 @@ void Map::FillFood() {
   }
   // do random
   std::default_random_engine engine(SDL_GetTicks());
-  std::uniform_int_distribution<int> dist(0, empty_list.Size() - 1);
+  std::uniform_int_distribution<int> dist(0, (int)empty_list.Size() - 1);
   FillFood(empty_list.GetWhere(dist(engine)));
 }
 
-const MyVec2d<_MapBlock_>& Map::GetInternalMap() { return m_MapBlocks; }
+MyVec2d<_MapBlock_>& Map::GetInternalMap() { return m_MapBlocks; }
+
+bool Map::IsGameOver() {
+  if (__IsSnakeHitWall()) return true;
+  if (__IsSnakeHitItself()) return true;
+  return false;
+}
+
+bool Map::IsAteFood() {
+  //判断给定头坐标，对应map中的state是否为food
+  if (m_MapBlocks.GetByPos(ptHead).blockState == _MapBlock_::State::FOOD) {
+    return true;
+  }
+  return false;
+}
 
 void Map::Draw() {
   size_t w, h;
@@ -85,28 +106,20 @@ void Map::Draw() {
   }
 }
 
-bool Map::IsSnakeHitWall(const MyPoint& snake_head) {
+bool Map::__IsSnakeHitWall() {
   //判断头是否在范围外
   size_t w, h;
   m_MapBlocks.GetSize(w, h);
-  if (snake_head.x < w || snake_head.x >= w || snake_head.y < 0 ||
-      snake_head.y >= h) {
+  if (m_MapBlocks.IsInRange(ptHead)) {
+    return false;
+  } else {
     return true;
   }
-  return false;
 }
 
-bool Map::IsSnakeHitItself(const MyPoint& snake_head) {
-  //判断给定头坐标，对应map中的state是否为head
-  if (m_MapBlocks.GetByPos(snake_head).blockState != _MapBlock_::State::HEAD) {
-    return true;
-  }
-  return false;
-}
-
-bool Map::IsSnakeAteFood(const MyPoint& snake_head) {
-  //判断给定头坐标，对应map中的state是否为food
-  if (m_MapBlocks.GetByPos(snake_head).blockState == _MapBlock_::State::FOOD) {
+bool Map::__IsSnakeHitItself() {
+  //判断给定头坐标，对应map中的state是否为body
+  if (m_MapBlocks.GetByPos(ptHead).blockState == _MapBlock_::State::BODY) {
     return true;
   }
   return false;

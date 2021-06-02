@@ -57,3 +57,9 @@ void Pixel::DrawLine(int x1, int y1, int x2, int y2) {
 void Pixel::DrawLine(const MyPoint& from, const MyPoint& to) {
   DrawLine(from.x, from.y, to.x, to.y);
 }
+
+void Pixel::DrawLine(MyLink<MyPoint>& pts) {
+  for (int i = 1; i < pts.Size(); i++) {
+    DrawLine(pts.GetWhere(i - 1), pts.GetWhere(i));
+  }
+}

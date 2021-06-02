@@ -12,6 +12,10 @@ class MyPoint {
     if (this->x == other.x && this->y == other.y) return true;
     return false;
   }
+  bool operator!=(const MyPoint& other) const {
+    if (this->x == other.x && this->y == other.y) return false;
+    return true;
+  }
 
  public:
   int x, y;

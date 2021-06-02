@@ -26,12 +26,12 @@ class MyVec2d {
   }
 
  public:
-  bool IsInRange(const MyPoint& pt) { return IsInRange(pt.x, pt.y); }
-  bool IsInRange(int x, int y) {
+  bool IsInRange(const MyPoint& pt) const { return IsInRange(pt.x, pt.y); }
+  bool IsInRange(int x, int y) const {
     if (x < 0 || y < 0 || x >= m_nWidth || y >= m_nHeight) return false;
     return IsInRange(y * m_nWidth + x);
   }
-  bool IsInRange(size_t index) {
+  bool IsInRange(size_t index) const {
     if (index >= m_nSize)
       return false;
     else
@@ -39,11 +39,11 @@ class MyVec2d {
   }
 
  public:
-  void GetSize(size_t& width, size_t& height) {
+  void GetSize(size_t& width, size_t& height) const {
     width = m_nWidth;
     height = m_nHeight;
   }
-  void GetSize(size_t& length) { length = m_nSize; }
+  void GetSize(size_t& length) const { length = m_nSize; }
 
  public:
   void SetAll(const T& to_set) {

@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "MyStruct/MyLink.h"
 #include "MyStruct/MyPoint.h"
 
 //像素块绘制封装
@@ -27,6 +28,8 @@ class Pixel {
   static void DrawLine(int x1, int y1, int x2, int y2);
   //画线连接两个地图坐标方块的中心
   static void DrawLine(const MyPoint& from, const MyPoint& to);
+  //画线连接点集
+  static void DrawLine(MyLink<MyPoint>& pts);
 };
 
 #endif  // __PIXEL_H__

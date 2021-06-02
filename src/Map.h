@@ -36,22 +36,30 @@ class Map {
   //尝试避开蛇随机生成食物，这意味着要晚于FillSnake()
   void FillFood();
   // get the internal map
-  const MyVec2d<_MapBlock_>& GetInternalMap();
+  MyVec2d<_MapBlock_>& GetInternalMap();
+
+  bool IsGameOver();
+  bool IsAteFood();
 
  public:
   // display
   void Draw();
 
- public:
+ private:
   // return:
   //  true@ head .x .y out of width height
-  bool IsSnakeHitWall(const MyPoint& snake_head);
+  bool __IsSnakeHitWall();
   // return:
   //  true@ pts.first .x. y -> state == head
-  bool IsSnakeHitItself(const MyPoint& snake_head);
-  // return:
-  //  true@ head .x .y -> state == food
-  bool IsSnakeAteFood(const MyPoint& snake_head);
+  bool __IsSnakeHitItself();
+
+ public:
+  // snapshot
+  MyPoint ptHead;
+  // snapshot
+  MyPoint ptTail;
+  // snapshot
+  MyPoint ptFood;
 
  private:
   MyVec2d<_MapBlock_> m_MapBlocks;

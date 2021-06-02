@@ -24,13 +24,10 @@ class MyLink {
   T& GetWhere(size_t index);
   //删除index位置元素，原index后元素前移
   void DeleteWhere(size_t index);
-  //查找是否有此元素，返回index
-  //-1 on not found
-  int Find(const T& to_find);
 
  public:
   //元素数量
-  size_t Size();
+  size_t Size() const;
 
  private:
   _MyLink_Node_<T>* m_pHead;
@@ -120,23 +117,7 @@ void MyLink<T>::DeleteWhere(size_t index) {
 }
 
 template <typename T>
-int MyLink<T>::Find(const T& to_find) {
-  int now_index = 0;
-  int result_index = -1;
-  _MyLink_Node_<T>* now_ptr = m_pHead->pNextNode;
-  while (now_ptr != nullptr) {
-    if (now_ptr->content == to_find) {
-      result_index = now_index;
-      break;
-    }
-    now_ptr = now_ptr->pNextNode;
-    now_index++;
-  }
-  return result_index;
-}
-
-template <typename T>
-size_t MyLink<T>::Size() {
+size_t MyLink<T>::Size() const {
   return m_Size;
 }
 

@@ -41,142 +41,102 @@ int ManualController::React() {
   return result;
 }
 
-AutoController::AutoController(int mapWidth, int mapHeight)
-    : m_v2_MapBlocks(mapWidth, mapHeight),
-      m_ptSnakeHead({-1, -1}),
-      m_ptFood({-1, -1}),
-      m_ptNextStep({-1, -1}) {
-  ResetMap();
+AutoController::AutoController(Map& map)
+    : m_Map(map), m_pPath(nullptr), m_ptCacheNext(-1, -1) {
+  //...
+}
+
+AutoController::~AutoController() {
+  if (m_pPath != nullptr) {
+    delete m_pPath;
+  }
 }
 
 int AutoController::React() {
-  __Spread();
-  return __CalcDirection();
-}
-
-void AutoController::ResetMap() {
-  size_t w, h;
-  m_v2_MapBlocks.GetSize(w, h);
-  for (int y = 0; y != h; y++) {
-    for (int x = 0; x != w; x++) {
-      auto& foo = m_v2_MapBlocks.GetByPos(x, y);
-      foo.bIsVisited = false;
-      foo.bIsPassable = true;
-      foo.ptThis = MyPoint(x, y);
-      foo.ptFrom = MyPoint(-1, -1);
-    }
+  //生成路径
+  if (m_pPath == nullptr) {
+    m_pPath = __TryBST(m_Map.ptHead, m_Map.ptFood);
+    if (m_pPath == nullptr) return -1;  // still fail
   }
-  m_ptSnakeHead = MyPoint(-1, -1);
-  m_ptSnakeEnd = MyPoint(-1, -1);
-  m_ptFood = MyPoint(-1, -1);
-  m_ptNextStep = MyPoint(-1, -1);
-}
-
-void AutoController::MapFillSnake(MyLink<MyPoint>& snake) {
-  m_ptSnakeHead = snake.GetWhere(0);
-  for (size_t i = 1; i != snake.Size() - 1; i++) {
-    auto& block = m_v2_MapBlocks.GetByPos(snake.GetWhere(i));
-    block.bIsPassable = false;
-    m_ptSnakeEnd = block.ptThis;
+  //存在路径，计算
+  int to_ret = -1;
+  if (m_pPath->Size() > 0) {
+    to_ret = __CalcDirection();
+    m_pPath->DeleteWhere(0);
   }
-}
-
-void AutoController::MapFillFood(const MyPoint& food_position) {
-  m_ptFood = food_position;
+  //走完了，令下次react重新生成路径
+  if (m_pPath != nullptr && m_pPath->Size() == 0) {
+    delete m_pPath;
+    m_pPath = nullptr;
+  }
+  return to_ret;
 }
 
 void AutoController::DrawPath() {
-  MyPoint nowPt = m_ptSnakeHead;
-  while (true) {
-    if (nowPt == m_ptFood) break;
-    if (nowPt == MyPoint(-1, -1)) break;
-    auto& nowblock = m_v2_MapBlocks.GetByPos(nowPt);
-    Pixel::DrawLine(nowPt, nowblock.ptFrom);
-    nowPt = nowblock.ptFrom;
+  if (m_pPath != nullptr) {
+    Pixel::SetColor(255, 0, 0);
+    Pixel::DrawLine(m_Map.ptHead, m_ptCacheNext);
+    Pixel::DrawLine(m_pPath->GetWhere(0), m_ptCacheNext);
+    Pixel::DrawLine(*m_pPath);
   }
 }
 
-void AutoController::__Spread() {
-  MyQueue<_MapBlock_*> que;
-  auto ptr = &(m_v2_MapBlocks.GetByPos(m_ptFood));
-  ptr->bIsVisited = true;
-  que.PushBack(ptr);
-  while (que.Size() > 0) {
-    auto now = que.Front();
-    //判定是否到达头
-    if (now->ptThis == m_ptSnakeHead) {
-      m_ptNextStep = now->ptFrom;
-      break;
-    }
-    __TryPushPoints(que, now->ptThis);
-    que.PopFont();
+MyLink<MyPoint>* AutoController::__TryBST(const MyPoint& from,
+                                          const MyPoint& to) {
+  auto& blocks = m_Map.GetInternalMap();
+
+  // spread
+  MyQueue<MyPoint> que_pt;
+  // check if push able
+  auto _TryPush = [&](const MyPoint& pt, const MyPoint& from) {
+    if (blocks.IsInRange(pt) == false) return;
+    auto& block = blocks.GetByPos(pt);
+    if (block.bIsVisited == true) return;
+    if (block.blockState == _MapBlock_::State::BODY) return;
+    block.bIsVisited = true;
+    block.ptFrom = from;
+    que_pt.PushBack(pt);
+  };
+  // do spread
+  blocks.GetByPos(from).bIsVisited = true;
+  que_pt.PushBack(from);
+  MyPoint now_pt;
+  while (que_pt.Size() > 0) {
+    now_pt = que_pt.Front();
+    // check stop
+    if (now_pt == to) break;
+
+    // try push 4 direction
+    _TryPush({now_pt.x - 1, now_pt.y}, now_pt);
+    _TryPush({now_pt.x + 1, now_pt.y}, now_pt);
+    _TryPush({now_pt.x, now_pt.y - 1}, now_pt);
+    _TryPush({now_pt.x, now_pt.y + 1}, now_pt);
+    que_pt.PopFont();
   }
+  if (now_pt != to) return nullptr;  // fail
+
+  // go back
+  auto path = new MyLink<MyPoint>;
+  while (now_pt != from) {
+    path->InsertWhere(now_pt, 0);
+    now_pt = blocks.GetByPos(now_pt).ptFrom;
+  }
+
+  return path;
 }
 
 int AutoController::__CalcDirection() {
-  if (m_ptNextStep == MyPoint(-1, -1)) {
-    return -1;
-  }
-  if (m_ptNextStep.x - m_ptSnakeHead.x > 0) {
+  m_ptCacheNext = m_pPath->GetWhere(0);
+  if (m_ptCacheNext.x - m_Map.ptHead.x > 0) {
     return 1;
-  } else if (m_ptNextStep.x - m_ptSnakeHead.x < 0) {
+  } else if (m_ptCacheNext.x - m_Map.ptHead.x < 0) {
     return 3;
   }
-  if (m_ptNextStep.y - m_ptSnakeHead.y > 0) {
+  if (m_ptCacheNext.y - m_Map.ptHead.y > 0) {
     return 2;
-  } else if (m_ptNextStep.y - m_ptSnakeHead.y < 0) {
+  } else if (m_ptCacheNext.y - m_Map.ptHead.y < 0) {
     return 0;
   }
+  throw "error path point";
   return -1;
-}
-
-void AutoController::__TryPushPoints(MyQueue<_MapBlock_*>& que,
-                                     const MyPoint& pt_from) {
-  MyPoint tmpPoint;
-  tmpPoint = {pt_from.x - 1, pt_from.y};
-  if (__IsAvaliablePoint(tmpPoint)) __PushPointAndSet(que, tmpPoint, pt_from);
-  tmpPoint = {pt_from.x + 1, pt_from.y};
-  if (__IsAvaliablePoint(tmpPoint)) __PushPointAndSet(que, tmpPoint, pt_from);
-  tmpPoint = {pt_from.x, pt_from.y - 1};
-  if (__IsAvaliablePoint(tmpPoint)) __PushPointAndSet(que, tmpPoint, pt_from);
-  tmpPoint = {pt_from.x, pt_from.y + 1};
-  if (__IsAvaliablePoint(tmpPoint)) __PushPointAndSet(que, tmpPoint, pt_from);
-}
-
-bool AutoController::__IsAvaliablePoint(const MyPoint& pt) {
-  if (m_v2_MapBlocks.IsInRange(pt) == false) {
-    // not on map || out of range
-    return false;
-  }
-  if (m_v2_MapBlocks.GetByPos(pt).bIsPassable == false) {
-    // cannot run through
-    return false;
-  }
-  if (m_v2_MapBlocks.GetByPos(pt).bIsVisited == true) {
-    // already visited
-    return false;
-  }
-  // avaliable
-  return true;
-}
-
-void AutoController::__PushPointAndSet(MyQueue<_MapBlock_*>& que,
-                                       const MyPoint& pt,
-                                       const MyPoint& pt_from) {
-  auto ptr = &m_v2_MapBlocks.GetByPos(pt);
-  ptr->ptFrom = pt_from;
-  ptr->bIsVisited = true;
-  que.PushBack(ptr);
-}
-
-void AutoController::__ResetMapVisitState() {
-  size_t w, h;
-  m_v2_MapBlocks.GetSize(w, h);
-  for (int y = 0; y != h; y++) {
-    for (int x = 0; x != w; x++) {
-      auto& foo = m_v2_MapBlocks.GetByPos(x, y);
-      foo.bIsVisited = false;
-      foo.ptFrom = MyPoint(-1, -1);
-    }
-  }
 }
