@@ -27,7 +27,8 @@ void Pixel::Init(int mapWidth, int mapHeight, int pixelSize) {
   sg_pRenderer = SDL_CreateRenderer(
       sg_pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   // 以我使用这个库多年的经验，在没毛病的机器上根本不会出问题
-  // 所以咱们老广东人就不写错误处理了
+  // 所以就不写错误处理了
+  SDL_RaiseWindow(sg_pWindow);
 }
 
 void Pixel::Clear() { SDL_RenderClear(sg_pRenderer); }

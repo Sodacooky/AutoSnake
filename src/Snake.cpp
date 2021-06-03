@@ -16,9 +16,9 @@ void Snake::SetDirection(int direction) {
 
 void Snake::__CreateDefaultBody() {
   // add default point
-  link_ptBody.InsertWhere(MyPoint(7, 5), 0);
-  link_ptBody.InsertWhere(MyPoint(6, 5), 0);
-  link_ptBody.InsertWhere(MyPoint(5, 5), 0);
+  link_ptBody.InsertWhere(MyPoint(12, 10), 0);
+  link_ptBody.InsertWhere(MyPoint(11, 10), 0);
+  link_ptBody.InsertWhere(MyPoint(10, 10), 0);
   // set move direction
   m_nDirection = 3;
   m_nLastMoveDirection = 3;
